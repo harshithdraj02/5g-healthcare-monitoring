@@ -1,0 +1,326 @@
+
+
+A Mini Project Report on
+5G-Enabled Intelligent Healthcare Monitoring
+Submitted in partial fulfilment of the requirements for the award of the degree of
+Bachelor of Engineering
+In
+Computer Science and Engineering
+for the Academic Year: 2026-27
+Submitted by
+
+--- TABLE START ---
+Dudekula Sai Charan | (1NT24CS091)
+Harshith D Raj | (1NT24CS103)
+--- TABLE END ---
+
+Under the Guidance of
+Mr. Shivaputra Panchal
+Assistant Professor, Dept. of CSE, NMIT
+Dept. of Computer Science & Engineering
+
+
+YELAHANKA, BENGALURU- 560064
+
+Computer Science and Engineering
+Certificate
+This is to certify that the project work entitled “5G-Enabled Intelligent Healthcare Monitoring” has been carried out by Dudekula Sai Charan (1NT24CS091) and Harshith D Raj (1NT24CS103), bonafide students of Nitte Meenakshi Institute of Technology, in partial fulfillment of the requirements for the award of the degree of Bachelor of Engineering in the Computer Science and Engineering, under Nitte Meenakshi Institute of Technology, during the academic year 2026–2027.
+Signature of the Guide
+Mr. Shivaputra Panchal
+Assistant Professor, Dept. of CSE, NMIT
+Nitte Meenakshi Institute of Technology,
+Bengaluru-560064
+
+Contents
+1. Introduction1
+1.1 Overview of 5G NR and the Healthcare Monitoring Challenge1
+1.2 Problem Statement1
+1.3 Objectives2
+1.4 Motivation2
+2. Literature Review2
+2.1 Remote Patient Monitoring and the Internet of Medical Things2
+2.2 5G Enablers: URLLC, mMTC and Network Slicing3
+2.3 Edge Computing for Latency-Critical Services3
+2.4 Anomaly Detection in Patient Monitoring3
+2.5 Summary of Related Work3
+3. Research Gap Identification4
+4. System Architecture4
+4.1 Patient and Traffic Model5
+4.2 Network and Latency Model5
+4.3 Data-Flow Architecture5
+5. Proposed Methodology6
+5.1 Problem Formulation6
+5.2 Adaptive Anomaly Detector6
+5.3 Baseline Schemes6
+5.4 Step-by-Step Workflow6
+6. Features of the Proposed Framework7
+7. Implementation7
+7.1 Software Environment7
+7.2 Simulation Parameters8
+7.3 Evaluation Procedure8
+8. Results and Discussion9
+8.1 Anomaly Detection Quality9
+8.2 Alert Latency and Reliability9
+8.3 Uplink Data Volume11
+8.4 Discussion11
+9. Applications11
+10. Advantages12
+11. Relevance of 5G-Advanced and Edge Intelligence in 202612
+12. Impact, Limitations and Future Scope13
+13. Conclusion13
+References15
+
+1. INTRODUCTION
+1.1 Overview of 5G NR and the Healthcare Monitoring Challenge
+Fifth-generation (5G) mobile communication, standardised by 3GPP as New Radio (NR), was designed around three broad service classes: enhanced Mobile Broadband (eMBB), Ultra-Reliable Low-Latency Communication (URLLC) and massive Machine-Type Communication (mMTC) [3], [5], [8]. Put simply, 5G is not just a faster version of 4G. It is a network that can be shaped to the needs of very different applications: a video stream that wants bandwidth, a sensor that wants to run for years on a small battery, or an alarm message that must arrive quickly and without fail.
+Healthcare is one of the places where this flexibility matters most. Chronic conditions, an ageing population and the shortage of specialist doctors outside large cities are pushing hospitals towards remote patient monitoring (RPM), where wearable and bedside sensors continuously measure heart rate, blood-oxygen saturation (SpO₂), temperature, blood pressure and ECG, and software watches those numbers on the clinician’s behalf. A patient recovering at home, a person in an ambulance, or a ward with dozens of beds can then be observed without a nurse standing next to every bed.
+The catch is that such a system is only as good as its slowest link. A reading has to travel from the sensor, across a wireless network, to a place where it is analysed, and then back to a doctor’s screen or phone. Traditional set-ups rely on Wi-Fi or Bluetooth inside the ward and on shared 4G links with a distant cloud server for anything beyond it. Those links are fine most of the time, but they share capacity with everyone else, their delay varies with congestion, and every reading makes a long round trip even when the answer is only needed locally.
+Three features of 5G speak directly to these weaknesses:
+URLLC and a lighter air interface - the radio can deliver small, important messages, such as an arrhythmia alert, with very low and predictable delay.
+mMTC - a single cell can serve a large number of low-power sensors, which suits wards, care homes and community health programmes where many devices report at once.
+Network slicing and multi-access edge computing (MEC) - medical traffic can be given its own prioritised slice, and the analysis can run on a server inside the hospital or at the network edge instead of in a faraway data centre [7], [9], [12].
+1.2 Problem Statement
+Healthcare monitoring is a setting where a late or missed message has a real cost. At the same time the system must not cry wolf, because clinicians who are bombarded with false alarms start to ignore them. The specific problems addressed in this project are:
+Alerts must be both quick and dependable - a critical alert is only useful if it reaches the clinician within a short, known time, not just on average but in the bad cases as well.
+Shared networks are unpredictable - on a busy 4G cell, monitoring packets queue behind ordinary user traffic, so delay grows exactly when the cell is crowded.
+Cloud-only processing is wasteful - sending every raw sample, including a continuous ECG, to a remote server consumes uplink capacity and moves sensitive data further than necessary.
+Fixed alarm limits are blunt - a single threshold for all patients and all situations treats a harmless motion artefact and a real deterioration alike, producing floods of false alarms.
+This mini project therefore studies a 5G-enabled intelligent monitoring pipeline, with network slicing, edge processing and a patient-specific adaptive anomaly detector, and compares it quantitatively with 4G-plus-cloud and 5G-plus-cloud alternatives.
+1.3 Objectives
+To understand how the 5G service classes, network slicing and edge computing map onto the needs of remote patient monitoring.
+To review existing work on IoT healthcare, 5G enablers, edge computing and anomaly detection, and to identify the research gap.
+To model an end-to-end monitoring pipeline, from the wearable sensor to the clinician’s device, in three architectures: 4G with cloud, 5G eMBB with cloud, and 5G with a URLLC slice and edge processing.
+To design and implement a lightweight, interpretable adaptive anomaly detector that learns each patient’s own baseline.
+To evaluate the schemes in terms of alert latency, deadline-miss rate, detection recall, false alarms and uplink data volume.
+To provide a reproducible prototype that can be extended for coursework and further research.
+1.4 Motivation
+Most of us know someone who has spent a night in a hospital ward or looked after a relative with a long-term illness. In those situations the difference between noticing a problem in two minutes and noticing it in twenty can be large, and nurses are often responsible for far more patients than they can watch continuously. Technology cannot replace that care, but it can act as an extra pair of eyes, provided it is fast, reliable and sensible about when to raise its voice.
+From an academic point of view, the topic is a nice meeting point of wireless communication, edge computing and data analysis. It lets us ask a concrete networking question, namely what 5G actually changes for a latency-critical service, and answer it with numbers instead of slogans. We also found it satisfying that a small and transparent simulation, which anyone in the class can run and inspect, is enough to bring out the main trade-offs.
+2. LITERATURE REVIEW
+2.1 Remote Patient Monitoring and the Internet of Medical Things
+The Internet of Things (IoT) in healthcare has been surveyed extensively. Islam et al. review the network architectures, platforms and applications of IoT-based health care, from body-worn sensing to hospital back-ends, and discuss the associated security and privacy concerns [1]. Their work shows how varied the connectivity options are, but it treats the network mostly as a given. Ahad et al. go a step further and propose an architecture and taxonomy specifically for 5G-based smart healthcare networks, along with the challenges and research directions they see ahead [2]. Together these papers establish the context: monitoring devices are already common, and 5G is widely expected to be their next-generation connectivity layer.
+2.2 5G Enablers: URLLC, mMTC and Network Slicing
+Andrews et al. outline the technological shifts that define 5G, including dense networks, millimetre-wave spectrum and massive MIMO [3], and Shafi et al. provide a tutorial overview of the standards, trials and deployment practice [4]. The ITU-R vision document for IMT-2020 defines the usage scenarios behind eMBB, URLLC and mMTC and sets capability targets such as very low user-plane latency for the ultra-reliable class [5]. At the radio level, Popovski et al. explain the principles and building blocks that make ultra-reliable low-latency access possible [6]. Network slicing, which creates isolated logical networks with different guarantees on shared infrastructure, is surveyed by Foukas et al. [7], and the 5G system architecture that makes slicing and edge deployment possible is specified in 3GPP TS 23.501 [12] and TS 38.300 [8].
+2.3 Edge Computing for Latency-Critical Services
+Edge computing moves computation close to where data are produced. Shi et al. describe the vision and the challenges, and argue that processing near the source reduces response time and the burden on the backbone [10]. Mach and Becvar survey mobile edge computing, with a focus on architecture and computation offloading from devices to nearby servers [9]. For healthcare this is attractive for two reasons: the alert path becomes shorter, and raw patient data can be reduced to summaries before anything leaves the hospital.
+2.4 Anomaly Detection in Patient Monitoring
+Anomaly detection is a mature field. Chandola et al. classify anomalies into point, contextual and collective types and stress that whether a value is abnormal often depends on its context [11]. This is exactly the situation in patient monitoring: a heart rate of 98 bpm may be normal for one patient and alarming for another, and a one-second spike caused by a moving wrist is not the same as a sustained change. Simple fixed limits ignore this context, which is why adaptive, patient-specific methods with some form of persistence check are attractive.
+2.5 Summary of Related Work
+Table 1: Comparison of selected related work
+
+--- TABLE START ---
+Work | Technique | Focus | Observed limitation (for our goal)
+Islam et al. [1] | Survey | IoT for health care | Network-agnostic; no latency quantification
+Ahad et al. [2] | Architecture and taxonomy | 5G smart healthcare network | Conceptual; no simulated alert latency
+Shafi et al. [4] | Tutorial overview | 5G standards, trials, deployment | General purpose, not healthcare-specific
+Popovski et al. [6] | Design principles | URLLC radio access | Radio level only; no clinical pipeline
+Foukas et al. [7] | Survey | Network slicing | Does not evaluate medical traffic
+Mach and Becvar [9] | Survey | MEC and offloading | Generic offloading; not alert delivery
+Chandola et al. [11] | Survey | Anomaly detection | Network effects out of scope
+--- TABLE END ---
+
+
+3. RESEARCH GAP IDENTIFICATION
+Reading through the papers above, we noticed that each one answers an important piece of the puzzle, but few of those we reviewed put the pieces together and measure the result. The following gaps stand out:
+Network and analytics studied separately - surveys on 5G describe latency targets, and surveys on anomaly detection describe algorithms, but the combined pipeline from sensor to clinician is rarely evaluated as one system.
+Averages instead of worst cases - a monitoring service lives or dies by its slow tail, yet results are often reported as mean latency. The share of alerts that miss a deadline is the more meaningful figure.
+Alarm quality ignored - network papers seldom report how many false alarms the monitoring logic produces, although alarm fatigue is a well-known clinical problem.
+Cloud versus edge rarely quantified - the benefit of keeping analysis inside the hospital is usually stated qualitatively; the saving in uplink data volume is seldom put into numbers.
+Reproducibility - many studies depend on proprietary data or testbeds, so a student or a small lab cannot easily repeat them or compare against simple baselines.
+Research gap addressed: there is a need for a lightweight, reproducible evaluation that treats the 5G network, edge processing and an adaptive anomaly detector as a single monitoring pipeline, and that reports alert latency (including the tail), deadline misses, detection quality and data volume against 4G and cloud-based baselines. This project builds and runs such an evaluation.
+4. SYSTEM ARCHITECTURE
+The system has two layers. The patient and network layer contains the wearable sensors, the patient gateway and the 5G access and core network, including the slice reserved for medical traffic. The edge AI and clinical layer sits at the hospital edge: it pre-processes the incoming vitals, runs the anomaly detector, manages alerts and forwards them to the clinician and to the hospital record system. Figure 1 shows the overall block diagram.
+
+Figure 1: Block diagram of the proposed 5G-enabled monitoring architecture
+4.1 Patient and Traffic Model
+We simulate a cohort of 100 patients for 12 hours each. For every patient, heart rate and SpO₂ are generated once per second. Each patient has an individual baseline (heart rate drawn around 78 bpm, SpO₂ around 97 %), a slowly varying component to mimic activity and rest, and measurement noise. Two kinds of disturbances are then added. The first are genuine clinical events, either tachycardia (heart rate raised by 32 to 55 bpm) or desaturation (SpO₂ lowered by 6 to 11 points), each lasting 45 to 180 seconds and occurring about every three hours on average. The second are motion artefacts, brief one-to-three-second spikes in heart rate or dropouts in SpO₂ that look alarming in a single sample but are not clinical events.
+On the network side, every monitored patient sends one monitoring packet per second. The same cell also carries background traffic from ordinary users, modelled as a Poisson arrival process at 1,500 packet-units per second in the busy hour and 300 in the off-peak period. Capacity is expressed in the same normalised packet-units: 2,000 per second for the 4G cell and 8,000 per second for the 5G cell.
+4.2 Network and Latency Model
+The end-to-end latency of an alert is the time from the moment the monitoring packet leaves the patient gateway to the moment the alert is available on the clinician’s device. We split it into five parts: queueing and service at the shared radio resource (simulated explicitly as a single-server queue), a fixed radio-access delay, the transport delay to the processing site (log-normally distributed so that occasional slow packets occur), processing time at the cloud or edge server, and the downlink delivery of the alert. A packet that is lost incurs an extra retransmission penalty. The short Bluetooth hop between the sensor and the gateway is identical in all schemes and is excluded.
+Three architectures are compared:
+A: 4G + Cloud - monitoring packets share a 4G cell with other users and are analysed in a remote cloud.
+B: 5G eMBB + Cloud - the same cloud processing, but over a 5G cell with higher capacity and a faster air interface, still without any prioritisation.
+C: 5G URLLC slice + MEC (proposed) - medical packets get priority over background traffic in a dedicated slice, use the low-latency radio configuration, and are analysed on an edge server inside the hospital.
+4.3 Data-Flow Architecture
+In the proposed architecture, sensors transmit to the patient gateway, which forwards the vitals over the 5G URLLC slice to the user-plane function and the co-located MEC host. The edge pre-processing module filters and summarises the signals, the adaptive detector checks each patient against their own baseline, and the alert manager prioritises and de-duplicates alerts before pushing them to the clinician dashboard and the cloud-based electronic health record. Only one-minute summaries and short clips around alerts need to travel beyond the hospital; the rest of the raw data stays local.
+5. PROPOSED METHODOLOGY
+5.1 Problem Formulation
+For an alert packet, the end-to-end latency is the sum of its components:
+L = Lq + Lradio + Ltransport + Lproc + Ldl + 1[lost] · Lretx
+where Lq is the queueing and service delay at the radio resource, and the remaining terms are the fixed and random delay components described in Section 4.2. A design deadline of D = 100 ms is taken as the target for critical alerts, and a stricter 20 ms figure is also reported. The performance measures of interest are the deadline-miss probability P(L > D), the 99th-percentile latency, the recall and false-alarm rate of the detector, and the uplink data volume per patient per day.
+5.2 Adaptive Anomaly Detector
+The detector is deliberately simple so that every decision can be explained to a clinician. For each patient and each signal x(t) it keeps an exponentially weighted moving average (EWMA) of the signal as the personal baseline, and an EWMA of the squared deviation as the personal noise level:
+μ(t) = μ(t−1) + α [ x(t) − μ(t−1) ],     z(t) = [ x(t) − μ(t−1) ] / σ(t)
+with α = 1/1800, which corresponds to a memory of about half an hour. A sample is flagged when |z| exceeds 4 for heart rate, or when z falls below −4 for SpO₂. To avoid reacting to a single glitch, an alert is raised only when at least 8 of the last 10 samples are flagged. This persistence rule is what separates a moving wrist from a real deterioration, and it adds a delay of a few seconds, which is the price paid for far fewer false alarms.
+5.3 Baseline Schemes
+Fixed-threshold alarm (detection baseline) - an alarm at any sample where heart rate is above 100 bpm or below 50 bpm, or SpO₂ is below 92 %. This mirrors the simple limit-based alarms found on many bedside monitors.
+4G + Cloud and 5G eMBB + Cloud (network baselines) - as described in Section 4.2.
+5G URLLC slice + MEC with adaptive detector (proposed) - the complete pipeline.
+5.4 Step-by-Step Workflow
+Step 1 - Cohort generation: synthetic vitals with baselines, drift, noise, clinical events and motion artefacts are generated for 100 patients.
+Step 2 - Sensing and packetisation: each patient’s readings are sent as one packet per second through the gateway.
+Step 3 - Transport and queueing: packets enter the radio resource together with background traffic; in the proposed scheme medical packets receive priority.
+Step 4 - Processing: the cloud or edge server receives the packet and runs the detector.
+Step 5 - Alerting: when the persistence rule is satisfied, the alert manager pushes an alert to the clinician.
+Step 6 - Evaluation: latency statistics, detection metrics and data volumes are computed on identical inputs for every scheme.
+6. FEATURES OF THE PROPOSED FRAMEWORK
+Slice-Aware Prioritisation - medical packets are served ahead of background traffic, so their delay does not grow when the cell gets busy.
+Edge-First Processing - analysis runs inside the hospital, keeping the alert path short and the raw data local.
+Patient-Specific Baselines - each patient is compared with their own recent history, not with one limit for everybody.
+Persistence Filtering - isolated glitches do not trigger alarms, which reduces alarm fatigue.
+Interpretable Logic - the detector has only a handful of parameters, and every alert can be explained in a sentence.
+Data Minimisation - only summaries and short clips around alerts leave the hospital network.
+Fair, Reproducible Comparison - all schemes are tested on identical inputs with fixed random seeds.
+7. IMPLEMENTATION
+7.1 Software Environment
+The framework is written in Python. NumPy and SciPy handle the signal generation, the EWMA filters and the queue simulation, and Matplotlib produces the figures. Fixed random seeds make every number in this report reproducible. No 5G simulator or hardware is needed, which keeps the prototype lightweight. The flip side is that the radio and core network are represented by calibrated delay components rather than by a full protocol-level model; this is discussed under limitations.
+7.2 Simulation Parameters
+Table 2: General simulation parameters
+
+--- TABLE START ---
+Parameter | Value
+Patients / duration | 100 patients, 12 hours each, 1 sample per second (detection study)
+Signals | Heart rate (baseline about 78 bpm) and SpO₂ (baseline about 97 %)
+Clinical events | Tachycardia or desaturation, 45 to 180 s, about one every 3 hours
+Motion artefacts | 1 to 3 s spikes or dropouts, several per hour
+Fixed-threshold limits | HR > 100 or < 50 bpm, SpO₂ < 92 %
+Adaptive detector | α = 1/1800, |z| > 4, persistence 8 of 10 samples
+Monitoring traffic | 1 packet per patient per second
+Background traffic | 1,500 packet-units/s (busy hour), 300 (off-peak)
+Cell capacity | 2,000 packet-units/s (4G), 8,000 packet-units/s (5G)
+Latency study | 300 s per run; 50, 100, 200, 300 and 400 patients per cell
+Alert deadline | 100 ms (design target); 20 ms reported as a strict target
+--- TABLE END ---
+
+
+Table 3: Latency-model parameters of the three architectures
+
+--- TABLE START ---
+Parameter | A: 4G + Cloud | B: 5G eMBB + Cloud | C: 5G URLLC + MEC
+Radio access delay (ms) | 10 | 5 | 1.5
+Transport delay, median (ms) | 30 | 22 | 2
+Transport spread (log-normal σ) | 0.35 | 0.30 | 0.20
+Processing (ms) | 5 + Exp(mean 8) | 5 + Exp(mean 8) | 3 + Exp(mean 2)
+Downlink delivery (ms) | 10 | 5 | 1.5
+Packet loss probability | 1 % | 0.5 % | 0.001 %
+Retransmission penalty (ms) | 20 | 10 | 2
+Queue discipline | FIFO | FIFO | Medical priority
+--- TABLE END ---
+
+
+These values are representative figures chosen to reflect the commonly reported behaviour of 4G, 5G eMBB and URLLC with edge deployment; they are assumptions of the model, not measurements from a live network. The comparison is therefore about the relative behaviour of the three architectures.
+7.3 Evaluation Procedure
+The detection study uses a single synthetic cohort of 100 patients generated with a fixed seed. Both detectors see exactly the same signals, and the first ten minutes of each record are ignored as warm-up. An event counts as detected if an alarm occurs between its start and ten seconds after its end; an alarm episode that overlaps no true event counts as a false alarm. Alarms separated by less than 30 seconds are merged into one episode.
+For the latency study, every combination of architecture, patient count and background load is simulated for 300 seconds. Each architecture sees the same pattern of medical arrivals. We report the mean, 95th and 99th percentile of end-to-end latency, and the percentage of packets that exceed the 100 ms and 20 ms targets.
+8. RESULTS AND DISCUSSION
+8.1 Anomaly Detection Quality
+Table 4 compares the fixed-threshold alarm and the adaptive detector on the same 100 patients over 12 hours each (361 true events in total).
+Table 4: Detection performance of the two alarm schemes
+
+--- TABLE START ---
+Scheme | Events detected | Recall | Alarms raised | False alarms | False alarms / patient-day | Mean delay (s)
+Fixed threshold | 359 / 361 | 99.4 % | 14,403 | 14,052 | 281 | 0.5
+Adaptive (proposed) | 344 / 361 | 95.3 % | 341 | 0 | 0.0 | 7.0
+--- TABLE END ---
+
+
+The fixed limits catch almost every event (99.4 %), but at an enormous price: they raise 14,403 alarms, of which 14,052 are false, which is roughly 281 false alarms per patient per day. Two things cause this. Patients whose normal heart rate sits close to 100 bpm cross the limit again and again, and every short motion artefact triggers an alarm on its own. The adaptive detector detects 344 of 361 events (95.3 %) with no false alarms in this dataset, at the cost of a detection delay of about 7.0 seconds, because it waits for the persistence rule to be satisfied. Of the 17 events it missed, 7 were tachycardia and 10 were desaturation episodes.
+
+Figure 2: Fixed-threshold and adaptive alarms on one patient’s heart-rate trace
+Figure 2 shows one patient. The brief spike before the event is a motion artefact: the fixed limit reacts to it, while the adaptive detector ignores it. During the genuine event both schemes alarm, and the adaptive alarm stops a little before the event ends because the personal baseline starts to follow the raised heart rate. That behaviour is acceptable for a first alert, but a real system would freeze the baseline while an alarm is active.
+8.2 Alert Latency and Reliability
+Table 5 gives the latency statistics for 400 monitored patients in the busy hour, which is the most demanding of the simulated conditions.
+Table 5: End-to-end alert latency, 400 patients, busy hour
+
+--- TABLE START ---
+Architecture | Mean (ms) | p95 (ms) | p99 (ms) | Above 100 ms | Above 20 ms
+A: 4G + Cloud | 74.7 | 105.2 | 123.4 | 7.68 % | 100.00 %
+B: 5G eMBB + Cloud | 46.2 | 66.3 | 79.4 | 0.07 % | 100.00 %
+C: 5G URLLC + MEC (proposed) | 10.2 | 14.3 | 17.5 | 0.00 % | 0.28 %
+--- TABLE END ---
+
+
+The proposed architecture delivers alerts in about 10.2 ms on average with a 99th percentile of 17.5 ms, and no packet in the simulation exceeded 100 ms. The 5G eMBB-plus-cloud option averages 46.2 ms, still within the 100 ms target for all but 0.07 % of packets, but it cannot meet a 20 ms target at all because the round trip to the cloud already takes longer. The 4G-plus-cloud baseline averages 74.7 ms, and 7.68 % of its packets miss the 100 ms target.
+
+Figure 3: Cumulative distribution of alert latency (400 patients, busy hour)
+
+Figure 4: 99th-percentile latency against the number of monitored patients (busy hour)
+Figure 4 shows how the schemes behave as more patients join the cell. The 5G curves are essentially flat, whereas the 4G curve starts to rise: its 99th percentile increases from 111.7 ms at 50 patients to 123.4 ms at 400. With the assumed busy-hour background load, the 4G radio resource is close to saturation as the patient count grows. A quick check shows that the load of 1,500 background units plus one unit per patient reaches the 4G capacity of 2,000 at about 500 patients, and in an additional trial run with 800 patients the 4G queue grew without bound and delays reached tens of seconds. That run is not included in the figures because it describes an overloaded cell rather than a typical operating point. In the off-peak period the picture is calmer: at 400 patients the 4G scheme still has a 99th percentile of 109.0 ms, against 17.5 ms for the proposed scheme.
+8.3 Uplink Data Volume
+We also estimated how much data each patient generates per day. If everything, including a 250 Hz ECG at 2 bytes per sample, is streamed to the cloud, one patient generates about 53.9 MB per day. If the edge server keeps the raw data and forwards only one-minute summaries of 100 bytes each plus a 30-second ECG clip with every alert (the adaptive detector raised about 6.8 alerts per patient per day), the figure drops to about 0.25 MB per day.
+Table 6: Estimated uplink data per patient per day
+
+--- TABLE START ---
+Approach | Data per day (MB) | Relative to cloud-only
+Cloud-centric (stream everything) | 53.9 | 100 %
+Edge-filtered (summaries + alert clips) | 0.25 | 0.5 %
+--- TABLE END ---
+
+
+That is a reduction of roughly 99.5 % in this estimate. The figure is a straightforward calculation from the stated assumptions, not a measurement, but it illustrates why processing at the edge matters for hospitals that monitor many patients at once.
+8.4 Discussion
+The detector, not the network, dominates alert time in this model. The adaptive detector needs about 7.0 seconds to confirm an event, whereas network latency is measured in milliseconds. 5G does not shorten the decision window; what it does is make delivery predictable, keep it from degrading under load, and leave room for richer analysis within the same time budget.
+Most of the gain comes from architecture, not just from a faster radio. Moving from 4G to 5G eMBB with the same cloud lowers latency, but the largest step comes from the URLLC configuration combined with edge processing, which removes the long round trip and the shared-queue exposure.
+Prioritisation matters when the cell is crowded. At the loads simulated, the benefit of the priority slice shows up mainly as insurance against congestion; the 4G result shows what happens without it.
+There is a trade-off in the detector. Persistence filtering removed all false alarms in this dataset but cost some recall and a few seconds of delay. A clinical deployment would tune this trade-off with real data and clinician input.
+The results are model-based. They come from synthetic vitals, assumed delay parameters and a single cell. They demonstrate the method and the relative behaviour of the schemes, not the absolute performance of any real network or hospital.
+9. APPLICATIONS
+Home-Based Remote Monitoring - patients with chronic heart or lung conditions can be observed from their own homes, with alerts sent to a care team.
+Hospital Wards and Step-Down Units - many wireless sensors in one ward report to an edge server inside the hospital.
+Ambulances and Emergency Response - vitals streamed while the patient is in transit let the receiving hospital prepare in advance.
+Rural and Primary Health Centres - nurses and local staff can be supported by specialists at a district or city hospital.
+Elderly and Post-Operative Care - continuous observation after surgery or in assisted living, with prompt alerts for falls, arrhythmia or falling oxygen levels.
+Smart Hospital Infrastructure - the same slice-and-edge design can serve other medical devices, such as infusion pumps and connected equipment.
+Research and Teaching - a transparent baseline that students can extend with new detectors or more realistic network models.
+10. ADVANTAGES
+Predictable Delay - 99th-percentile alert latency of about 18 ms in the proposed scheme, against about 123 ms for 4G with cloud in the busy hour.
+Fewer False Alarms - the adaptive detector produced 0 false alarms in the simulated cohort, compared with about 281 per patient per day for fixed limits.
+Lower Uplink Load - edge filtering reduces the estimated daily data per patient by roughly 100 %.
+Privacy-Friendly - raw physiological signals can stay within the hospital network.
+Scalable - the 5G cell remained stable as the number of monitored patients grew, where the 4G cell began to degrade.
+Simple and Explainable - a handful of parameters and an easily inspected rule.
+Reproducible - fixed seeds, open tools and no special hardware.
+11. RELEVANCE OF 5G-ADVANCED AND EDGE INTELLIGENCE IN 2026
+Healthcare has been one of the most frequently cited use cases for 5G since the first standards were drawn up, and by 2026 the ecosystem has moved beyond the basics. 5G networks are now commercially available in India and many other countries, and the 5G-Advanced releases from 3GPP continue to refine the technology. Among these refinements are reduced-capability (RedCap) devices aimed at wearables and similar equipment that does not need the full capability of a smartphone, which matters for battery-powered health sensors.
+At the same time, intelligence is moving towards the network edge. Hospitals and operators increasingly deploy edge servers close to the users they serve, and research on AI-native networks treats learning-based functions as part of the network itself. A monitoring pipeline of the kind studied here, with a prioritised slice, local analysis and light-weight models, fits naturally into that direction. Simple and transparent methods also remain valuable as baselines, and in settings where the available computing power is limited.
+12. IMPACT, LIMITATIONS AND FUTURE SCOPE
+Impact:
+Faster Response - predictable alert delivery supports earlier clinical intervention.
+Reduced Alarm Fatigue - fewer spurious alarms mean that the real ones are more likely to be taken seriously.
+Wider Access to Care - remote monitoring can extend specialist oversight to patients far from large hospitals.
+Limitations:
+Synthetic Data - the vitals are simulated, and real physiological signals are messier. The zero false-alarm result partly reflects the short, simple artefacts we generated.
+Assumed Network Parameters - the delay components are representative values, not measurements from a real 4G or 5G network.
+Single Cell, No Mobility - interference, handover and patient movement are not modelled.
+Two Vital Signs - the detector uses heart rate and SpO₂ only; ECG waveform analysis, blood pressure and temperature are not analysed.
+No Security or Clinical Validation - encryption, authentication and regulatory validation are outside the scope of this mini project.
+Future scope:
+Real Data - evaluate the detector on public physiological datasets such as those hosted on PhysioNet.
+Richer Models - add learning-based detectors such as autoencoders or LSTM networks and compare them with the interpretable baseline.
+Protocol-Level Simulation or Testbed - repeat the latency study with a network simulator such as ns-3 with 5G-LENA, or with an open-source 5G stack such as Open5GS and srsRAN.
+Security and Privacy - add authentication, encryption and consent management, in line with data-protection requirements such as India’s Digital Personal Data Protection Act, 2023.
+Federated Learning - train shared models across hospitals without moving patient data.
+Multi-Slice and Mobility - study how medical, video-consultation and ordinary traffic share capacity, and what happens during handover.
+13. CONCLUSION
+This project examined how 5G can support intelligent healthcare monitoring. After reviewing the literature on IoT healthcare, 5G enablers, edge computing and anomaly detection, we identified a gap: the network and the analytics are usually studied separately, and the slow tail of latency and the quality of alarms are seldom reported together. We therefore modelled the monitoring pipeline end to end and compared three architectures, 4G with cloud, 5G eMBB with cloud, and a 5G URLLC slice with edge processing, together with a patient-specific adaptive anomaly detector.
+In simulation, the proposed architecture delivered alerts with a mean latency of about 10.2 ms and a 99th percentile of 17.5 ms for 400 patients in the busy hour, while 4G with cloud missed the 100 ms target for 7.7 % of its packets. The adaptive detector replaced roughly 281 false alarms per patient per day by none in our dataset, with 95.3 % recall, and edge filtering cut the estimated daily uplink data per patient by about 100 %.
+The study is limited to synthetic vitals, assumed delay parameters and a single cell, so the numbers should be read as a comparison of architectures rather than as predictions for a real hospital. Even so, it shows that the benefit of 5G for monitoring comes from combining the radio, the slice, the edge server and the analytics sensibly, and it provides a reproducible base for extensions such as real datasets, learning-based detectors and a testbed evaluation.
+REFERENCES
+[1]	S. M. R. Islam, D. Kwak, M. H. Kabir, M. Hossain and K.-S. Kwak, “The Internet of Things for health care: A comprehensive survey,” IEEE Access, vol. 3, pp. 678–708, 2015.
+[2]	A. Ahad, M. Tahir and K.-L. A. Yau, “5G-based smart healthcare network: Architecture, taxonomy, challenges and future research directions,” IEEE Access, vol. 7, pp. 100747–100762, 2019.
+[3]	J. G. Andrews et al., “What will 5G be?,” IEEE Journal on Selected Areas in Communications, vol. 32, no. 6, pp. 1065–1082, 2014.
+[4]	M. Shafi et al., “5G: A tutorial overview of standards, trials, challenges, deployment, and practice,” IEEE Journal on Selected Areas in Communications, vol. 35, no. 6, pp. 1201–1221, 2017.
+[5]	ITU-R, “IMT Vision – Framework and overall objectives of the future development of IMT for 2020 and beyond,” Recommendation ITU-R M.2083-0, Sep. 2015.
+[6]	P. Popovski et al., “Wireless access for ultra-reliable low-latency communication: Principles and building blocks,” IEEE Network, vol. 32, no. 2, pp. 16–23, 2018.
+[7]	X. Foukas, G. Patounas, A. Elmokashfi and M. K. Marina, “Network slicing in 5G: Survey and challenges,” IEEE Communications Magazine, vol. 55, no. 5, pp. 94–100, 2017.
+[8]	3GPP, “NR; NR and NG-RAN Overall Description; Stage 2,” TS 38.300.
+[9]	P. Mach and Z. Becvar, “Mobile edge computing: A survey on architecture and computation offloading,” IEEE Communications Surveys & Tutorials, vol. 19, no. 3, pp. 1628–1656, 2017.
+[10]	W. Shi, J. Cao, Q. Zhang, Y. Li and L. Xu, “Edge computing: Vision and challenges,” IEEE Internet of Things Journal, vol. 3, no. 5, pp. 637–646, 2016.
+[11]	V. Chandola, A. Banerjee and V. Kumar, “Anomaly detection: A survey,” ACM Computing Surveys, vol. 41, no. 3, Art. 15, 2009.
+[12]	3GPP, “System architecture for the 5G System (5GS),” TS 23.501.
+Appendix – A: Plagiarism Report
+The plagiarism report generated using the approved university tool is to be attached here before submission.
+Appendix – B: PO – PSO Mapping
+The project outcomes are mapped to Program Outcomes (POs) and Program Specific Outcomes (PSOs) as defined by the NBA accreditation framework. This project primarily addresses PO1 (Engineering Knowledge), PO2 (Problem Analysis), PO4 (Investigation of Complex Problems), PO5 (Modern Tool Usage), PO9 (Individual and Team Work) and PSO1 (Apply computer science fundamentals to solve real-world problems).
+Appendix – C: Source Code
+The Python simulation code (cohort generator, fixed-threshold and adaptive detectors, queue-based latency model, data-volume estimate and plotting script) used to produce Tables 4–6 and Figures 1–4 is available with the authors and can be attached as a printed listing if required.

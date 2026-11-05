@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+
+# Results cache & binaries
+*.zip
+5G_Healthcare_Monitoring_Complete_Project_Submission/
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
